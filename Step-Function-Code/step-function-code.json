@@ -1,0 +1,101 @@
+{
+  "Comment": "This script may have JSON file structure but in fact it is a state-machine code that runs an ETL process in the AWS cloud",
+  "StartAt": "E-&-L (Raw Data)",
+  "States": {
+    "E-&-L (Raw Data)": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "OutputPath": "$.Payload",
+      "Parameters": {
+        "Payload.$": "$",
+        "FunctionName": "arn:aws:lambda:eu-west-2:534799599157:function:get-data-from-api:$LATEST"
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 6,
+          "BackoffRate": 2
+        }
+      ],
+      "Next": "(Raw-Data) SNS Publish"
+    },
+    "(Raw-Data) SNS Publish": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Parameters": {
+        "Message.$": "$",
+        "TopicArn": "arn:aws:sns:eu-west-2:534799599157:topic-1"
+      },
+      "Next": "T-Only (Cleans Data)",
+      "ResultPath": null
+    },
+    "T-Only (Cleans Data)": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "OutputPath": "$.Payload",
+      "Parameters": {
+        "Payload.$": "$",
+        "FunctionName": "arn:aws:lambda:eu-west-2:534799599157:function:transform-data-from-api:$LATEST"
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 6,
+          "BackoffRate": 2
+        }
+      ],
+      "Next": "(Clean-Data) SNS Publish"
+    },
+    "(Clean-Data) SNS Publish": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Parameters": {
+        "Message.$": "$",
+        "TopicArn": "arn:aws:sns:eu-west-2:534799599157:topic-2"
+      },
+      "Next": "L-Only (Clean-Data-To-S3)",
+      "ResultPath": null
+    },
+    "L-Only (Clean-Data-To-S3)": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "OutputPath": "$.Payload",
+      "Parameters": {
+        "Payload.$": "$",
+        "FunctionName": "arn:aws:lambda:eu-west-2:534799599157:function:load-clean-data-to-s3:$LATEST"
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 6,
+          "BackoffRate": 2
+        }
+      ],
+      "Next": "Amazon SNS: Alert ETL Success"
+    },
+    "Amazon SNS: Alert ETL Success": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Parameters": {
+        "Message": "Hi Rui, today's ETL was a success!",
+        "TopicArn": "arn:aws:sns:eu-west-2:534799599157:send-text"
+      },
+      "End": true
+    }
+  }
+}

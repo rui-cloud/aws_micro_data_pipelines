@@ -1,0 +1,19 @@
+Download dependencies into folder
+    sudo pip install --target ./clean-load-data-package boto3 requests --upgrade
+    sudo pip install --target ./clean-load-data-package requests --upgrade
+
+
+Zip up your code (with dependencies) "in the newly created directory" so use cd <dir-name>
+    zip -r9 ${OLDPWD}/ pythonCleanLoadDataFunction.zip .
+    
+Add python script to zip (cd ../)
+    zip -g pythonCleanLoadDataFunction.zip load_clean_data_s3.py 
+    
+Create Lambda Function
+    aws lambda create-function --function-name load-clean-data-to-s3 --runtime python3.9  --role arn:aws:iam::534799599157:role/SuperLambda --handler load_clean_data_s3.load_clean_data_s3 --publish --zip-file fileb://pythonCleanLoadDataFunction.zip
+
+Invoke Lambda Function
+    aws lambda invoke --function-name load-clean-data-to-s3 output.txt (--payload file://newDragonPayload.json)
+    
+Update Lambda Code
+    aws lambda update-function-code --function-name load-clean-data-to-s3 --zip-file fileb://pythonCleanLoadDataFunction.zip --publish

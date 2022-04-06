@@ -1,0 +1,14 @@
+{
+  "BTC": {
+    "date": "2022-03-15T12:52:14.000Z",
+    "id": 1,
+    "cmc_rank_position": 1,
+    "name": "Bitcoin",
+    "GBP_price": 29698.91395939554,
+    "volume_24h": 18773413085.119205,
+    "change_24h": -0.4567492,
+    "change_7d": -2.14763886,
+    "market_cap": 563804182605.1649,
+    "market_dominance": 42.7225
+  }
+}

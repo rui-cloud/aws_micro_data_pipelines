@@ -1,0 +1,17 @@
+Download dependencies into folder
+    sudo pip install --target ./transform-data-package boto3
+
+Zip up your code (with dependencies) "in the newly created directory" so use cd <dir-name>
+    zip -r9 ${OLDPWD}/ pythonTransformDataFunction.zip .
+    
+Add python script to zip (cd ../)
+    zip -g pythonTransformDataFunction.zip transform_data.py 
+    
+Create Lambda Function
+    aws lambda create-function --function-name transform-data-from-api --runtime python3.9  --role arn:aws:iam::534799599157:role/SuperLambda --handler transform_data.transform_data --publish --zip-file fileb://pythonTransformDataFunction.zip
+
+Invoke Lambda Function
+    aws lambda invoke --function-name transform-data-from-api output.txt (--payload file://newDragonPayload.json)
+    
+Update Lambda Code
+    aws lambda update-function-code --function-name transform-data-from-api --zip-file fileb://pythonTransformDataFunction.zip --publish
